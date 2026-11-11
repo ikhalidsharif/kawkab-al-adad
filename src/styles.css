@@ -1,0 +1,148 @@
+@import 'tailwindcss';
+@import 'katex/dist/katex.min.css';
+@import '@fontsource/cairo/arabic-400.css';
+@import '@fontsource/cairo/arabic-700.css';
+@import '@fontsource/cairo/arabic-900.css';
+@import '@fontsource/cairo/latin-400.css';
+@import '@fontsource/cairo/latin-700.css';
+
+@theme {
+  --font-sans: 'Cairo', system-ui, sans-serif;
+  --color-space-950: #050816;
+  --color-space-900: #0a1024;
+  --color-space-800: #111a36;
+  --color-space-700: #1b2750;
+  --color-space-600: #2a3a6e;
+  --color-neon: #22d3ee;
+  --color-violet: #a78bfa;
+  --color-good: #4ade80;
+  --color-bad: #fb7185;
+  --color-gold: #fbbf24;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: #e6ecff;
+  background-color: var(--color-space-950);
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 80%, #fff6 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 40% 70%, #9be8ff88 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 20%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 10% 85%, #fff5 50%, transparent 51%),
+    radial-gradient(ellipse at 15% 0%, #3b1d7a55, transparent 55%),
+    radial-gradient(ellipse at 100% 100%, #0e5a7a44, transparent 55%);
+  background-size: 300px 300px, 400px 400px, 500px 500px, 350px 350px, 450px 450px, 100% 100%, 100% 100%;
+  background-attachment: fixed;
+}
+
+#fx {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.math {
+  unicode-bidi: isolate;
+  direction: ltr;
+  display: inline-block;
+}
+.math-display {
+  display: block;
+  margin: 0.6rem 0;
+  font-size: 1.35em;
+}
+.katex {
+  font-size: 1.12em;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-2xl border border-space-600/60 bg-space-900/80 backdrop-blur-sm shadow-[0_0_30px_-12px_var(--color-neon)];
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-bold transition select-none cursor-pointer
+      border border-space-600 bg-space-800 hover:bg-space-700 hover:border-neon/60 active:scale-95 disabled:opacity-40 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply border-neon/70 bg-neon/15 text-neon hover:bg-neon/25 shadow-[0_0_18px_-6px_var(--color-neon)];
+  }
+  .btn-gold {
+    @apply border-gold/70 bg-gold/10 text-gold hover:bg-gold/20;
+  }
+  .btn-danger {
+    @apply border-bad/70 bg-bad/10 text-bad hover:bg-bad/20;
+  }
+  .kbd {
+    @apply inline-block min-w-[1.4em] rounded-md border border-space-600 bg-space-950 px-1.5 text-xs font-bold text-slate-400 leading-5 text-center;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-space-600 bg-space-800 px-3 py-0.5 text-sm;
+  }
+  .answer-input {
+    @apply w-full rounded-xl border-2 border-space-600 bg-space-950 px-4 py-3 text-2xl font-bold text-center outline-none
+      focus:border-neon focus:shadow-[0_0_20px_-6px_var(--color-neon)] transition;
+  }
+  .choice {
+    @apply flex items-center gap-3 rounded-xl border-2 border-space-600 bg-space-800 px-4 py-3 text-lg transition cursor-pointer
+      hover:border-neon/70 hover:bg-space-700 text-right;
+  }
+  .choice.correct {
+    @apply border-good bg-good/15;
+  }
+  .choice.wrong {
+    @apply border-bad bg-bad/15;
+  }
+  .title-glow {
+    text-shadow: 0 0 18px #22d3ee88, 0 0 2px #22d3ee;
+  }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+@keyframes slideIn {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 #22d3ee66; }
+  50% { box-shadow: 0 0 0 10px #22d3ee00; }
+}
+.anim-pop { animation: pop 0.35s ease-out both; }
+.anim-shake { animation: shake 0.45s; }
+.anim-in { animation: slideIn 0.3s ease-out both; }
+.anim-pulse { animation: pulseGlow 1.8s infinite; }
+.xp-float {
+  position: fixed;
+  pointer-events: none;
+  font-weight: 900;
+  color: var(--color-gold);
+  text-shadow: 0 0 8px #fbbf2488;
+  animation: floatUp 1s ease-out forwards;
+  z-index: 70;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pop, .anim-shake, .anim-in, .anim-pulse, .xp-float { animation-duration: 0.01ms !important; }
+}

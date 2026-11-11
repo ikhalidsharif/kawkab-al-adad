@@ -1,0 +1,26 @@
+{
+  "name": "kawkab-al-adad",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "play": "npm run build && vite preview --port 8080 --strictPort --open",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/katex": "^0.16.8",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@fontsource/cairo": "^5.3.0",
+    "fraction.js": "^5.3.4",
+    "katex": "^0.19.1"
+  }
+}
