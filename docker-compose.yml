@@ -4,6 +4,8 @@ services:
   kawkab:
     build: .
     image: kawkab-al-adad:latest
+    # rebuild from source on every (re)deploy, so Portainer's git polling picks up new commits
+    pull_policy: build
     container_name: kawkab-al-adad
     ports:
       - "30080:80"
