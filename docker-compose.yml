@@ -1,0 +1,10 @@
+# Used by Portainer (Stacks → Add stack → Repository) on the TrueNAS server.
+# Builds the image from the Dockerfile in this repo and serves the game on port 30080.
+services:
+  kawkab:
+    build: .
+    image: kawkab-al-adad:latest
+    container_name: kawkab-al-adad
+    ports:
+      - "30080:80"
+    restart: unless-stopped
