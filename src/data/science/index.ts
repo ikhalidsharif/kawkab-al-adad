@@ -2,6 +2,8 @@ import type { Generator, LessonId } from '../../core/question';
 import { bankGenerators } from '../../science/bank';
 import type { LearnContent } from '../../science/types';
 import { bacteriaGrowth, bank2_2a, learn2_2a } from './s2_2a';
+import { bank2_2b, deathData, learn2_2b } from './s2_2b';
+import { bank2_2c, learn2_2c } from './s2_2c';
 
 export interface GameDef {
   route: string;
@@ -33,8 +35,26 @@ export const STATIONS: Station[] = [
     learn: learn2_2a,
     game: { route: 'fortress', title: 'حصن الجسم', desc: 'مسببات المرض تهاجم من كل المنافذ — فعّل خط الدفاع المناسب قبل أن تخترقك!' },
   },
-  { id: '2-2b', chapter: 2, title: 'الأمراض المعدية', pages: '56–59، 62–63', available: false, generators: [] },
-  { id: '2-2c', chapter: 2, title: 'الأمراض غير المعدية', pages: '59–61', available: false, generators: [] },
+  {
+    id: '2-2b',
+    chapter: 2,
+    title: 'الأمراض المعدية',
+    pages: '56–58، 61–63',
+    available: true,
+    generators: [...bankGenerators('2-2b', bank2_2b), deathData],
+    learn: learn2_2b,
+    game: { route: 'koch', title: 'مختبر كوخ', desc: 'عيّنات تتدفق على مختبرك: حدّد مسبب كل مرض ورتّب خطوات كوخ قبل نفاد الوقت.' },
+  },
+  {
+    id: '2-2c',
+    chapter: 2,
+    title: 'الأمراض غير المعدية',
+    pages: '59–61',
+    available: true,
+    generators: bankGenerators('2-2c', bank2_2c),
+    learn: learn2_2c,
+    game: { route: 'sort', title: 'فرز سريع', desc: 'معدٍ أم غير معدٍ؟ افرز أكبر عدد من الأمراض والحالات في 60 ثانية.' },
+  },
   { id: '3-0', chapter: 3, title: 'التهيئة', pages: '72–75', available: false, generators: [] },
   { id: '3-1a', chapter: 3, title: 'الجهاز الهضمي', pages: '76–80', available: false, generators: [] },
   { id: '3-1b', chapter: 3, title: 'التغذية', pages: '80–85', available: false, generators: [] },

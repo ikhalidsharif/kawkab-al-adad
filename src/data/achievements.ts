@@ -13,6 +13,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'three-stars', title: 'ثلاث نجوم', desc: 'حصل على 3 نجوم في محطة', icon: '⭐' },
   { id: 'blitz-15', title: 'البرق', desc: '15 إجابة صحيحة في تحدٍّ سريع واحد', icon: '⏱️' },
   { id: 'fortress-20', title: 'حارس الحصن', desc: 'صدّ 20 هجوماً في لعبة حصن الجسم', icon: '🛡️' },
+  { id: 'koch-15', title: 'عالم المختبر', desc: '15 عيّنة صحيحة في مختبر كوخ', icon: '🔬' },
+  { id: 'sorter-25', title: 'الفارز السريع', desc: '25 فرزاً صحيحاً في لعبة الفرز السريع', icon: '⚡' },
   { id: 'immune-guard', title: 'خبير المناعة', desc: '3 نجوم في محطة خطوط الدفاع والمناعة', icon: '🧬' },
   { id: 'level-5', title: 'مستكشف صاعد', desc: 'وصل إلى المستوى 5', icon: '🛰️' },
   { id: 'level-10', title: 'قائد البعثة', desc: 'وصل إلى المستوى 10', icon: '🌌' },

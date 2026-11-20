@@ -9,9 +9,12 @@ import type { BankItem } from '../src/science/bank';
 import { DIAGRAMS } from '../src/ui/diagrams';
 import { attackOptions } from '../src/ui/games/fortress';
 import { bank2_2a } from '../src/data/science/s2_2a';
+import { bank2_2b, DATA_2_2B, KOCH_BUCKETS, KOCH_CARDS } from '../src/data/science/s2_2b';
+import { bank2_2c, QUICK_SORT_CARDS, SORT_BUCKETS } from '../src/data/science/s2_2c';
+import { cardBuckets } from '../src/ui/games/rapidSort';
 import { correctInput } from './helpers';
 
-const BANKS: [string, BankItem[]][] = [['2-2a', bank2_2a]];
+const BANKS: [string, BankItem[]][] = [['2-2a', bank2_2a], ['2-2b', bank2_2b], ['2-2c', bank2_2c]];
 const uniq = <T>(a: T[]) => new Set(a).size === a.length;
 
 describe('question banks', () => {
@@ -149,4 +152,51 @@ describe('mock exam', () => {
       expect(gradeExam(qs, qs.map(() => null)).score).toBe(0);
     }
   });
+});
+
+describe('2-2ب: death-rate and AIDS data (pp. 57, 61)', () => {
+  const { YEARS, DEATHS, CHILD_DEATHS } = DATA_2_2B;
+  it('the book tables are copied correctly', () => {
+    expect(YEARS).toEqual([1950, 1980, 1990, 2000]);
+    expect(DEATHS.find(([n]) => n === 'السكري')![1]).toEqual([17, 18, 22, 29]);
+    expect(CHILD_DEATHS).toEqual([536, 420, 209, 115, 76]);
+  });
+  it('every answer matches an independent calculation', () => {
+    const pct = (name: string, k: number) => DEATHS.find(([n]) => n === name)![1][k] / 10;
+    for (const d of [1, 2, 3] as const) {
+      for (let s = 1; s <= 300; s++) {
+        const q = makeQuestion('2-2b/data', s, d);
+        const m = q.meta as Record<string, never>;
+        const v = Number(correctInput(q));
+        let expected: number;
+        switch (m.kind as string) {
+          case 'read': expected = pct(m.name, m.k); break;
+          case 'diff': expected = pct(m.name, m.b) - pct(m.name, m.a); break;
+          case 'sum': expected = DEATHS.reduce((t, [n]) => t + pct(n, m.k), 0); break;
+          case 'child-drop': expected = CHILD_DEATHS[m.i] - CHILD_DEATHS[m.j]; break;
+          case 'child-sum': expected = CHILD_DEATHS.slice(m.from, (m.to as number) + 1).reduce((a, b) => a + b, 0); break;
+          default: throw new Error(`unknown kind ${m.kind}`);
+        }
+        expect(Math.abs(v - expected), q.prompt).toBeLessThan(1e-6);
+      }
+    }
+    // spot-check: drop from 1995 to 1999 is 460 deaths
+    expect(536 - 76).toBe(460);
+  });
+});
+
+describe('chapter 2 quick-classify games', () => {
+  const decks: [string, string[], typeof KOCH_CARDS][] = [['مختبر كوخ', KOCH_BUCKETS, KOCH_CARDS], ['فرز سريع', SORT_BUCKETS, QUICK_SORT_CARDS]];
+  for (const [name, buckets, cards] of decks) {
+    it(`${name}: cards are unique, cite a page, and point at a real button`, () => {
+      expect(uniq(cards.map((c) => c.text))).toBe(true);
+      for (const c of cards) {
+        const bs = cardBuckets({ buckets }, c);
+        expect(bs.length >= 2 && bs.length <= 4, c.text).toBe(true);
+        expect(c.bucket >= 0 && c.bucket < bs.length, c.text).toBe(true);
+        expect(c.page >= 53 && c.page <= 63, c.text).toBe(true);
+      }
+      for (let b = 0; b < buckets.length; b++) expect(cards.some((c) => !c.buckets && c.bucket === b), `${name} bucket ${b}`).toBe(true);
+    });
+  }
 });

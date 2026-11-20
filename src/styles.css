@@ -119,6 +119,15 @@ body {
 .diagram .dg-antibody { fill: none; stroke: #fb7185; stroke-width: 3; stroke-linecap: round; }
 .diagram .dg-germ { fill: #fbbf24; }
 .diagram .dg-arrow { fill: none; stroke: #22d3ee; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.diagram .dg-dash { fill: none; stroke: #22d3ee66; stroke-width: 2; stroke-dasharray: 6 6; }
+.diagram .dg-node { fill: #111a3a; stroke: #2a3a6e; stroke-width: 2; }
+.diagram .dg-emoji { font-size: 30px; }
+.diagram .dg-emoji-lg { font-size: 52px; }
+.diagram .dg-small { fill: #94a3b8; font-size: 13px; font-weight: 700; }
+.diagram .dg-dish { fill: #cbd5e122; stroke: #cbd5e1; stroke-width: 2; }
+.diagram .dg-agar { fill: #fbbf2433; }
+.diagram .dg-blood { fill: #fb718526; stroke: #fb7185; stroke-width: 2; }
+.diagram .dg-insulin { fill: #4ade80; }
 .diagram .dg-region { fill: #22d3ee00; stroke: #22d3ee00; stroke-width: 2; transition: fill .15s, stroke .15s; }
 .diagram .dg-region:hover { fill: #22d3ee22; stroke: #22d3ee88; }
 .diagram .dg-badge circle { fill: #0a1024; stroke: #22d3ee; stroke-width: 2.5; }

@@ -1,6 +1,9 @@
 import { h, svg } from '../../core/dom';
 import { bodyDefense } from './bodyDefense';
 import { immuneResponse } from './immuneResponse';
+import { diseaseSpread } from './diseaseSpread';
+import { koch } from './koch';
+import { insulin } from './insulin';
 
 /** A diagram region: its Arabic name, where its number badge sits, and (lazily) its clickable shape. */
 export interface Region {
@@ -22,6 +25,9 @@ export interface DiagramDef {
 export const DIAGRAMS: Record<string, DiagramDef> = {
   'body-defense': bodyDefense,
   'immune-response': immuneResponse,
+  'disease-spread': diseaseSpread,
+  koch,
+  insulin,
 };
 
 export interface RenderedDiagram {
