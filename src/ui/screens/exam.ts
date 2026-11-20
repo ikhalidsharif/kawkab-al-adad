@@ -1,6 +1,6 @@
 import { sfx } from '../../core/audio';
 import { fmtTime, h, onKey, clear, isTyping } from '../../core/dom';
-import { buildExam, EXAM_MS, EXAM_SIZE, gradeExam, itemLabel, type ExamReport } from '../../core/exam';
+import { buildExam, EXAM_MS, EXAM_SIZE, examLessons, gradeExam, itemLabel, type ExamReport } from '../../core/exam';
 import { confetti } from '../../core/fx';
 import { awardXp, recordAnswer, unlock } from '../../core/game';
 import { lessonLabel, type AnswerInput, type LessonId, type Question } from '../../core/question';
@@ -35,14 +35,14 @@ export function examScreen(root: HTMLElement): () => void {
         'div',
         { class: 'panel p-8 flex flex-col items-center gap-5 text-center anim-pop' },
         h('div', { class: 'text-6xl' }, '📝'),
-        h('div', { class: 'grid grid-cols-3 gap-3 w-full max-w-lg' }, statBox('سؤالاً', String(EXAM_SIZE)), statBox('دقيقة', String(EXAM_MS / 60000), 'text-gold'), statBox('درساً', '12', 'text-violet')),
+        h('div', { class: 'grid grid-cols-3 gap-3 w-full max-w-lg' }, statBox('سؤالاً', String(EXAM_SIZE)), statBox('دقيقة', String(EXAM_MS / 60000), 'text-gold'), statBox('محطات', String(examLessons().length), 'text-violet')),
         h(
           'ul',
           { class: 'text-slate-300 text-right list-disc pr-6 leading-loose max-w-xl' },
           h('li', null, 'أسئلة مختلطة من كل الدروس، مرتّبة كورقة امتحان.'),
           h('li', null, 'لا تصحيح فوري ولا تلميحات: تظهر النتيجة والحلول في النهاية.'),
           h('li', null, 'يمكنك التنقّل بين الأسئلة، وتعليم سؤال للمراجعة 🚩، وتغيير إجابتك قبل التسليم.'),
-          h('li', null, 'الإجابة الصحيحة غير المبسّطة تأخذ نصف درجة — بسّط دائماً!'),
+          h('li', null, 'أنواع الأسئلة كما في التدريب: اختيار، صح/خطأ، مصطلح، ترتيب، تصنيف، مطابقة، مخطط، وحساب من البيانات.'),
           h('li', null, 'اختصارات: Enter التالي · Shift+Enter السابق · 1–4 للاختيار · F تعليم'),
         ),
         last ? h('div', { class: 'text-slate-400' }, `آخر نتيجة: ${last.score} / ${last.total} (${Math.round((last.score / last.total) * 100)}%)`) : null,

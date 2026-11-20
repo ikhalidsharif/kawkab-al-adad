@@ -1,5 +1,5 @@
 import { fmtTime, h, onKey } from '../../core/dom';
-import { lessonLabel } from '../../core/question';
+import { lessonLabel, type LessonId } from '../../core/question';
 import { getSave, resetAll } from '../../core/store';
 import { levelInfo } from '../../core/xp';
 import { LESSONS } from '../../data/lessons';
@@ -78,7 +78,7 @@ export function parentScreen(root: HTMLElement): () => void {
               [...s.exams].reverse().slice(0, 10).map((e) => {
                 const weak = Object.entries(e.byLesson)
                   .filter(([, v]) => v && v.correct / v.total < 0.5)
-                  .map(([k]) => k)
+                  .map(([k]) => lessonLabel(k as LessonId))
                   .join('، ');
                 const pct = Math.round((e.score / e.total) * 100);
                 return h(
