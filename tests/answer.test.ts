@@ -1,76 +1,56 @@
 import Fraction from 'fraction.js';
 import { describe, expect, it } from 'vitest';
-import { checkAnswer, parseNumber, parsePlusMinus, parseSci } from '../src/core/answer';
-
-const frac = (n: number, d: number) => ({ kind: 'fraction' as const, value: new Fraction(n, d), requireSimplest: true });
+import { arabicKey, checkAnswer, parseNumber, termsMatch } from '../src/core/answer';
 
 describe('parseNumber', () => {
-  it('parses integers, decimals, fractions and mixed numbers', () => {
-    expect(parseNumber('5')!.value.equals(5)).toBe(true);
+  it('parses integers, decimals, grouped digits and Arabic-Indic digits', () => {
+    expect(parseNumber('64')!.value.equals(64)).toBe(true);
     expect(parseNumber('-0.75')!.value.equals(new Fraction(-3, 4))).toBe(true);
-    expect(parseNumber('3/4')!.value.equals(new Fraction(3, 4))).toBe(true);
-    expect(parseNumber('-3/4')!.value.equals(new Fraction(-3, 4))).toBe(true);
-    expect(parseNumber('3/-4')!.value.equals(new Fraction(-3, 4))).toBe(true);
-    expect(parseNumber('1 1/2')!.value.equals(new Fraction(3, 2))).toBe(true);
-    expect(parseNumber('-2 3/5')!.value.equals(new Fraction(-13, 5))).toBe(true);
-    expect(parseNumber('٣/٤')!.value.equals(new Fraction(3, 4))).toBe(true);
-    expect(parseNumber('−1/2')!.value.equals(new Fraction(-1, 2))).toBe(true);
-  });
-  it('rejects garbage and zero denominators', () => {
+    expect(parseNumber('1 073 741 824')!.value.equals(1073741824)).toBe(true);
+    expect(parseNumber('١٢٠')!.value.equals(120)).toBe(true);
     expect(parseNumber('abc')).toBeNull();
-    expect(parseNumber('3/0')).toBeNull();
-    expect(parseNumber('')).toBeNull();
-  });
-  it('detects unsimplified forms', () => {
-    expect(parseNumber('6/8')!.simplest).toBe(false);
-    expect(parseNumber('1 2/4')!.simplest).toBe(false);
-    expect(parseNumber('6/3')!.simplest).toBe(false);
-    expect(parseNumber('5/3')!.simplest).toBe(true);
-    expect(parseNumber('1 2/3')!.simplest).toBe(true);
   });
 });
 
-describe('checkAnswer fraction', () => {
-  it('accepts improper and mixed forms equally', () => {
-    expect(checkAnswer(frac(7, 4), '7/4').status).toBe('correct');
-    expect(checkAnswer(frac(7, 4), '1 3/4').status).toBe('correct');
-    expect(checkAnswer(frac(7, 4), '1.75').status).toBe('correct');
-    expect(checkAnswer(frac(-7, 4), '-1 3/4').status).toBe('correct');
+describe('arabicKey (lenient term matching)', () => {
+  it('ignores hamza forms, ال, ة/ه, ى/ي, diacritics and spaces', () => {
+    expect(termsMatch('الأجسام المضادة', 'اجسام مضاده')).toBe(true);
+    expect(termsMatch('مُوَلِّدات الضِّد', 'مولدات الضد')).toBe(true);
+    expect(termsMatch('المناعة الاصطناعية', 'مناعه اصطناعيه')).toBe(true);
+    expect(termsMatch('الأهداب', 'الأجسام')).toBe(false);
+    expect(arabicKey('الأهداب')).not.toBe(arabicKey('الأجسام'));
   });
-  it('flags equivalent but unsimplified', () => {
-    const r = checkAnswer(frac(3, 4), '6/8');
-    expect(r.status).toBe('unsimplified');
-    expect(r.message).toContain('بسّط');
+  it('handles words whose own letters start with "ال" (التهاب)', () => {
+    expect(termsMatch('الالتهاب', 'التهاب')).toBe(true);
+    expect(termsMatch('الالتهاب', 'الالتهاب')).toBe(true);
+    expect(termsMatch('التهاب', 'تهاب')).toBe(true); // lenient on purpose: the article is dropped
   });
-  it('marks wrong and invalid', () => {
-    expect(checkAnswer(frac(3, 4), '4/3').status).toBe('wrong');
-    expect(checkAnswer(frac(3, 4), '-3/4').status).toBe('wrong');
-    expect(checkAnswer(frac(3, 4), 'hello').status).toBe('invalid');
+  it('checks text answers against all accepted forms', () => {
+    const spec = { kind: 'text' as const, accepted: ['الأجسام المضادة', 'جسم مضاد'] };
+    expect(checkAnswer(spec, 'اجسام مضادة').status).toBe('correct');
+    expect(checkAnswer(spec, 'الجسم المضاد').status).toBe('correct');
+    expect(checkAnswer(spec, 'مولد الضد').status).toBe('wrong');
+    expect(checkAnswer(spec, '  ').status).toBe('invalid');
   });
 });
 
-describe('plus-minus and scientific', () => {
-  it('parses ± forms', () => {
-    const seven = new Fraction(7);
-    expect(parsePlusMinus('±7')!.equals(seven)).toBe(true);
-    expect(parsePlusMinus('+-7')!.equals(seven)).toBe(true);
-    expect(parsePlusMinus('7, -7')!.equals(seven)).toBe(true);
-    expect(parsePlusMinus('-7 و 7')!.equals(seven)).toBe(true);
-    expect(parsePlusMinus('±5/6')!.equals(new Fraction(5, 6))).toBe(true);
-    expect(parsePlusMinus('+-0.7')!.equals(new Fraction(7, 10))).toBe(true);
-    expect(parsePlusMinus('7')).toBeNull();
-    expect(parsePlusMinus('7, 7')).toBeNull();
-    expect(checkAnswer({ kind: 'plusminus', value: seven }, '7').status).toBe('wrong');
-    expect(checkAnswer({ kind: 'plusminus', value: seven }, '±7').status).toBe('correct');
-    expect(checkAnswer({ kind: 'plusminus', value: new Fraction(5, 6) }, '+-5/6').status).toBe('correct');
+describe('order / sort / label answers', () => {
+  it('order: reports misplaced positions, rejects incomplete', () => {
+    const spec = { kind: 'order' as const, items: ['ب', 'ج', 'أ'], correct: [2, 0, 1] };
+    expect(checkAnswer(spec, [2, 0, 1]).status).toBe('correct');
+    const r = checkAnswer(spec, [0, 2, 1]);
+    expect(r.status).toBe('wrong');
+    expect(r.wrongParts).toEqual([0, 1]);
+    expect(checkAnswer(spec, [2, 0]).status).toBe('invalid');
   });
-  it('parses scientific notation and checks the mantissa range', () => {
-    expect(parseSci('2.5×10^-3')!.exp).toBe(-3);
-    expect(parseSci('2.5*10^(-3)')!.exp).toBe(-3);
-    expect(parseSci('2.5e-3')!.mantissa.equals(new Fraction(5, 2))).toBe(true);
-    const spec = { kind: 'sci' as const, mantissa: new Fraction(5, 2), exp: -3 };
-    expect(checkAnswer(spec, '2.5x10^-3').status).toBe('correct');
-    expect(checkAnswer(spec, '25×10^-4').status).toBe('unsimplified');
-    expect(checkAnswer(spec, '2.5×10^3').status).toBe('wrong');
+  it('sort: reports wrongly placed items, rejects unassigned', () => {
+    const spec = { kind: 'sort' as const, items: ['x', 'y', 'z'], buckets: ['A', 'B'], assign: [0, 1, 1] };
+    expect(checkAnswer(spec, [0, 1, 1]).status).toBe('correct');
+    expect(checkAnswer(spec, [1, 1, 1]).wrongParts).toEqual([0]);
+    expect(checkAnswer(spec, [0, -1, 1]).status).toBe('invalid');
+  });
+  it('label and choice compare indices', () => {
+    expect(checkAnswer({ kind: 'label', diagram: 'd', regions: ['a', 'b'], index: 1 }, 1).status).toBe('correct');
+    expect(checkAnswer({ kind: 'choice', index: 0 }, 2).status).toBe('wrong');
   });
 });

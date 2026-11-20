@@ -1,11 +1,12 @@
 import { sfx } from '../../core/audio';
+import { lessonLabel } from '../../core/question';
 import { h, onKey } from '../../core/dom';
 import { burstAt, confetti } from '../../core/fx';
 import { awardXp, recordAnswer, unlock } from '../../core/game';
 import type { Difficulty, LessonId, Question } from '../../core/question';
 import { makeRng, newSeed } from '../../core/rng';
 import { getSave, update } from '../../core/store';
-import { mathEl } from '../../core/tex';
+import { rich } from '../../core/tex';
 import { getBoss, getLesson, LESSONS, type BossDef } from '../../data/lessons';
 import { BOSS_SVG } from '../../data/ships';
 import { getGenerator, questionFromMix } from '../../generators';
@@ -85,7 +86,7 @@ function fight(root: HTMLElement, boss: BossDef): () => void {
         { class: 'panel p-8 flex flex-col items-center gap-4 text-center anim-pop' },
         h('h2', { class: 'text-3xl font-black text-bad' }, `${boss.name} يعترض طريقك!`),
         h('p', { class: 'text-slate-300 max-w-xl' }, `كل إجابة صحيحة تُنقص شريط حياته، والسلسلة المتتالية تضاعف الضربة. لديك ${HEARTS} قلوب، وكل خطأ أو انتهاء وقت (60 ثانية) يكلّفك قلباً. لا تلميحات في المعركة!`),
-        h('div', { class: 'flex flex-wrap justify-center gap-2' }, lessons.map((l) => h('span', { class: 'chip text-sm' }, `${l.id} ${l.title}`))),
+        h('div', { class: 'flex flex-wrap justify-center gap-2' }, lessons.map((l) => h('span', { class: 'chip text-sm' }, `${lessonLabel(l.id)} ${l.title}`))),
         best?.beaten ? h('div', { class: 'text-good font-bold' }, `✓ هزمته من قبل (أفضل نتيجة: ${best.bestHpLeft} قلوب متبقية)`) : null,
         h('button', { class: 'btn btn-danger text-xl px-10', onclick: start }, '⚔️ ابدأ المعركة ', h('span', { class: 'kbd' }, 'Enter')),
       ),
@@ -137,7 +138,7 @@ function fight(root: HTMLElement, boss: BossDef): () => void {
         runner = null;
         miss(q);
         host.replaceChildren(
-          h('div', { class: 'panel p-8 text-center flex flex-col items-center gap-3 anim-pop' }, h('div', { class: 'text-2xl font-black text-bad' }, '⌛ انتهى الوقت!'), h('div', null, 'الإجابة: ', mathEl(q.answerTex))),
+          h('div', { class: 'panel p-8 text-center flex flex-col items-center gap-3 anim-pop' }, h('div', { class: 'text-2xl font-black text-bad' }, '⌛ انتهى الوقت!'), h('div', null, 'الإجابة: ', rich(q.answerText))),
         );
         recordAnswer(q, false, true, 0);
         setTimeout(() => (hearts <= 0 ? lose() : nextQ()), 2200);
@@ -223,7 +224,7 @@ function fight(root: HTMLElement, boss: BossDef): () => void {
               'div',
               { class: 'flex flex-col gap-2 items-center' },
               h('div', { class: 'text-slate-300' }, 'دروس تحتاج تدريباً:'),
-              h('div', { class: 'flex flex-wrap gap-2 justify-center' }, weak.map(([id, n]) => h('a', { href: `#/station/${id}/practice`, class: 'btn text-sm' }, `${id} ${getLesson(id)?.title ?? ''} (${n})`))),
+              h('div', { class: 'flex flex-wrap gap-2 justify-center' }, weak.map(([id, n]) => h('a', { href: `#/station/${id}/practice`, class: 'btn text-sm' }, `${lessonLabel(id)} ${getLesson(id)?.title ?? ''} (${n})`))),
             )
           : null,
         h(

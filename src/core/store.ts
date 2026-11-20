@@ -51,7 +51,7 @@ export interface SaveData {
   exams: ExamResult[];
 }
 
-const KEY = 'kawkab-al-adad:v1';
+const KEY = 'rihla-aljism-science:v1';
 
 export function emptySave(): SaveData {
   return {

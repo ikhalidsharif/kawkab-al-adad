@@ -1,12 +1,13 @@
-import { previewTex } from '../../core/answer';
 import { sfx } from '../../core/audio';
-import { fmtTime, h, onKey, clear } from '../../core/dom';
+import { fmtTime, h, onKey, clear, isTyping } from '../../core/dom';
 import { buildExam, EXAM_MS, EXAM_SIZE, gradeExam, itemLabel, type ExamReport } from '../../core/exam';
 import { confetti } from '../../core/fx';
 import { awardXp, recordAnswer, unlock } from '../../core/game';
-import type { LessonId, Question } from '../../core/question';
+import { lessonLabel, type AnswerInput, type LessonId, type Question } from '../../core/question';
 import { getSave, update } from '../../core/store';
-import { mathEl, rich } from '../../core/tex';
+import { rich } from '../../core/tex';
+import { renderDiagram } from '../diagrams';
+import { answerWidget, describeAnswer, type AnswerWidget } from '../widgets/answerWidget';
 import { getLesson } from '../../data/lessons';
 import { go } from '../../router';
 import { statBox, titleBar } from '../widgets/common';
@@ -15,9 +16,10 @@ import { confirmDialog, toast } from '../widgets/toast';
 export function examScreen(root: HTMLElement): () => void {
   let phase: 'intro' | 'exam' | 'report' = 'intro';
   let questions: Question[] = [];
-  let answers: (string | number | null)[] = [];
+  let answers: AnswerInput[] = [];
   const flags = new Set<number>();
   let cur = 0;
+  let curWidget: AnswerWidget | null = null;
   let startAt = 0;
   let endAt = 0;
   let timer = 0;
@@ -28,7 +30,7 @@ export function examScreen(root: HTMLElement): () => void {
     clear(root);
     const last = getSave().exams[getSave().exams.length - 1];
     root.append(
-      titleBar('الامتحان التجريبي 🎓', 'محاكاة لامتحان الجزء الأول (ص 57–104)', '/map'),
+      titleBar('الامتحان التجريبي 🎓', 'محاكاة لامتحان العلوم – الجزء الأول (ص 53–97)', '/map'),
       h(
         'div',
         { class: 'panel p-8 flex flex-col items-center gap-5 text-center anim-pop' },
@@ -120,35 +122,23 @@ export function examScreen(root: HTMLElement): () => void {
         'div',
         { class: 'flex items-center gap-2 text-sm' },
         h('span', { class: 'chip text-violet' }, `السؤال ${cur + 1} من ${EXAM_SIZE}`),
-        h('span', { class: 'text-slate-400' }, `الدرس ${q.lesson}`),
+        h('span', { class: 'text-slate-400' }, `المحطة ${lessonLabel(q.lesson)}`),
         flags.has(cur) ? h('span', { class: 'chip text-gold border-gold/50' }, '🚩 للمراجعة') : null,
       ),
       h('div', { class: 'text-xl md:text-2xl leading-loose font-bold' }, rich(q.prompt)),
     );
-    if (q.choices) {
-      const grid = h('div', { class: `grid grid-cols-1 ${q.choices.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3` });
-      q.choices.forEach((c, k) => {
-        const b = h('button', { class: `choice ${answers[cur] === k ? '!border-neon !bg-neon/15' : ''}`, onclick: () => choose(k) }, h('span', { class: 'kbd' }, String(k + 1)), rich(c, 'text-xl'));
-        grid.append(b);
-      });
-      body.append(grid);
-    } else {
-      const input = h('input', { class: 'answer-input', dir: 'ltr', autocomplete: 'off', spellcheck: 'false', placeholder: q.placeholder ?? 'إجابتك', value: typeof answers[cur] === 'string' ? (answers[cur] as string) : '' });
-      const preview = h('div', { class: 'min-h-[3rem] grid place-items-center text-2xl text-neon/90' });
-      const upd = () => {
-        answers[cur] = input.value.trim() === '' ? null : input.value;
-        clear(preview);
-        const t = previewTex(input.value);
-        if (t) preview.append(mathEl(t));
+    if (q.diagram && q.answer.kind !== 'label') body.append(renderDiagram(q.diagram).el);
+    const index = cur;
+    curWidget = answerWidget(q, {
+      onChange: (v) => {
+        answers[index] = v;
+        if (q.answer.kind === 'choice' || q.answer.kind === 'label') sfx.click();
         renderPalette();
-      };
-      input.addEventListener('input', upd);
-      body.append(h('div', { class: 'flex flex-col gap-2 max-w-md w-full mx-auto' }, input, preview));
-      setTimeout(() => {
-        input.focus();
-        upd();
-      });
-    }
+      },
+    });
+    curWidget.setValue(answers[cur]);
+    body.append(curWidget.el);
+    setTimeout(() => curWidget?.focus());
     body.append(
       h(
         'div',
@@ -165,11 +155,6 @@ export function examScreen(root: HTMLElement): () => void {
     renderPalette();
   }
 
-  function choose(k: number) {
-    answers[cur] = k;
-    sfx.click();
-    show(cur);
-  }
   function toggleFlag() {
     if (flags.has(cur)) flags.delete(cur);
     else flags.add(cur);
@@ -241,7 +226,7 @@ export function examScreen(root: HTMLElement): () => void {
           return h(
             'a',
             { href: `#/station/${id}/practice`, class: 'flex items-center gap-3 py-1.5 border-b border-space-700 hover:text-neon' },
-            h('b', { class: 'w-12 text-neon', dir: 'ltr' }, id),
+            h('b', { class: 'w-12 text-neon', dir: 'ltr' }, lessonLabel(id)),
             h('span', { class: 'grow text-sm' }, getLesson(id)?.title ?? ''),
             h('div', { class: 'w-32 h-2 rounded-full bg-space-800 overflow-hidden' }, h('div', { class: `h-full ${p >= 100 ? 'bg-good' : p >= 50 ? 'bg-gold' : 'bg-bad'}`, style: `width:${p}%` })),
             h('span', { class: 'w-14 text-sm', dir: 'ltr' }, `${v.correct}/${v.total}`),
@@ -254,24 +239,19 @@ export function examScreen(root: HTMLElement): () => void {
   }
 
   function lessonList(ids: LessonId[], r: ExamReport) {
-    return h('div', { class: 'flex flex-col gap-1' }, ...ids.map((id) => h('div', { class: 'text-sm' }, h('b', { class: 'text-neon ml-2', dir: 'ltr' }, id), `${getLesson(id)?.title ?? ''} (${r.byLesson[id]!.correct}/${r.byLesson[id]!.total})`)));
+    return h('div', { class: 'flex flex-col gap-1' }, ...ids.map((id) => h('div', { class: 'text-sm' }, h('b', { class: 'text-neon ml-2', dir: 'ltr' }, lessonLabel(id)), `${getLesson(id)?.title ?? ''} (${r.byLesson[id]!.correct}/${r.byLesson[id]!.total})`)));
   }
 
   function reviewItem(it: ExamReport['items'][number], i: number): HTMLElement {
     const icon = it.status === 'correct' ? '✅' : it.status === 'unsimplified' ? '🟡' : it.status === 'blank' ? '⬜' : '❌';
-    const yours =
-      it.input === null
-        ? h('span', { class: 'text-slate-500' }, 'لم تُجب')
-        : typeof it.input === 'number' && it.q.choices
-          ? rich(it.q.choices[it.input])
-          : mathEl(previewTex(String(it.input)) || String(it.input));
+    const yours = it.input === null ? h('span', { class: 'text-slate-500' }, 'لم تُجب') : rich(describeAnswer(it.q, it.input));
     const sol = h('div', { class: 'hidden flex-col gap-2 mt-3' }, ...it.q.solution.map((s, k) => h('div', { class: 'rounded-lg border border-neon/30 bg-neon/5 p-2 leading-loose' }, h('span', { class: 'chip ml-2' }, String(k + 1)), rich(s))));
     return h(
       'div',
       { class: `panel p-4 ${it.status === 'correct' ? '' : it.status === 'unsimplified' ? 'border-gold/50' : 'border-bad/40'}` },
-      h('div', { class: 'flex items-center gap-2 text-sm mb-2' }, h('span', { class: 'text-xl' }, icon), h('b', null, `السؤال ${i + 1}`), h('span', { class: 'text-slate-400' }, `${it.q.lesson} · ${itemLabel(it.q)}`)),
+      h('div', { class: 'flex items-center gap-2 text-sm mb-2' }, h('span', { class: 'text-xl' }, icon), h('b', null, `السؤال ${i + 1}`), h('span', { class: 'text-slate-400' }, `${lessonLabel(it.q.lesson)} · ${itemLabel(it.q)} · ص ${it.q.page}`)),
       h('div', { class: 'leading-loose mb-2' }, rich(it.q.prompt)),
-      h('div', { class: 'flex flex-wrap gap-x-6 gap-y-1 text-sm' }, h('span', null, 'إجابتك: ', yours), it.status !== 'correct' ? h('span', { class: 'text-good' }, 'الصحيحة: ', mathEl(it.q.answerTex)) : null),
+      h('div', { class: 'flex flex-wrap gap-x-6 gap-y-1 text-sm' }, h('span', null, 'إجابتك: ', yours), it.status !== 'correct' ? h('span', { class: 'text-good' }, 'الصحيحة: ', rich(it.q.answerText)) : null),
       it.status === 'unsimplified' ? h('div', { class: 'text-gold text-sm mt-1' }, 'القيمة صحيحة لكنها ليست في أبسط صورة (نصف درجة).') : null,
       h(
         'button',
@@ -321,14 +301,12 @@ export function examScreen(root: HTMLElement): () => void {
       else void submit(false);
       return;
     }
-    if (e.code === 'KeyF') {
-      // letters are never part of an answer, so F toggles the flag even while typing
+    if (curWidget?.handleKey(e)) return;
+    // Not while typing: on an Arabic keyboard F is "ب".
+    if (e.code === 'KeyF' && !isTyping(e)) {
       e.preventDefault();
       toggleFlag();
-      return;
     }
-    const q = questions[cur];
-    if (q?.choices && /^[1-4]$/.test(e.key) && Number(e.key) <= q.choices.length) choose(Number(e.key) - 1);
   });
   return () => {
     off();

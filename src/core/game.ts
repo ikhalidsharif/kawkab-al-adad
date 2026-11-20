@@ -71,7 +71,7 @@ export function refreshStars(id: LessonId): [number, number] {
   });
   if (after === 3) {
     unlock('three-stars');
-    if (id === '3-5') unlock('pythagoras');
+    if (id === '2-2a') unlock('immune-guard');
     const ch = LESSONS.find((l) => l.id === id)?.chapter;
     const s = getSave();
     if (ch && LESSONS.filter((l) => l.chapter === ch && l.available).every((l) => (s.lessons[l.id]?.stars ?? 0) === 3)) unlock(`stars-ch${ch}`);

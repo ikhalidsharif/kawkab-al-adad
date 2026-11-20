@@ -4,10 +4,13 @@ export interface LearnSlide {
   title: string;
   /** Short explanation shown at once. */
   body: Rich;
-  /** Worked-example steps revealed one at a time with "التالي". */
+  /** Points revealed one at a time with "التالي". */
   steps?: Rich[];
-  /** Optional tip shown after the last step. */
   tip?: Rich;
+  /** Diagram id shown with the slide (names visible). */
+  diagram?: string;
+  /** Book pages this slide summarises. */
+  pages: string;
 }
 
 export interface LearnContent {

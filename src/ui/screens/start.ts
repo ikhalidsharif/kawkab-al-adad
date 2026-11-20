@@ -67,9 +67,9 @@ export function startScreen(root: HTMLElement): () => void {
     h(
       'div',
       { class: 'max-w-3xl mx-auto flex flex-col items-center gap-6 text-center pt-6' },
-      h('div', { class: 'text-sm tracking-widest text-violet font-bold' }, 'الصف الثامن · الرياضيات · الجزء الأول ص 57–104'),
-      h('h1', { class: 'text-4xl md:text-6xl font-black title-glow text-neon' }, 'مهمة الرياضيات'),
-      h('h2', { class: 'text-2xl md:text-3xl font-black -mt-3' }, 'كوكب الأعداد'),
+      h('div', { class: 'text-sm tracking-widest text-violet font-bold' }, 'الصف الثامن · العلوم · الجزء الأول ص 53–97'),
+      h('h1', { class: 'text-4xl md:text-6xl font-black title-glow text-neon' }, 'مهمة العلوم'),
+      h('h2', { class: 'text-2xl md:text-3xl font-black -mt-3' }, 'رحلة داخل الجسم'),
       h('p', { class: 'text-slate-300 max-w-xl' }, 'منطقتان، محطات، زعيمان، وامتحان تجريبي في النهاية. اجمع النجوم ونقاط الخبرة وجهّز نفسك للامتحان.'),
       h('div', { class: 'panel p-6 w-full flex flex-col gap-4' }, h('label', { class: 'font-bold text-right' }, 'اسم القائد'), name, err, h('div', { class: 'font-bold text-right' }, 'اختر مركبتك'), h('div', { class: 'grid grid-cols-3 md:grid-cols-6 gap-3' }, shipBtns)),
       launch,

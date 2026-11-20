@@ -1,4 +1,5 @@
 import { h, onKey } from '../../core/dom';
+import { lessonLabel } from '../../core/question';
 import { fmtTime } from '../../core/dom';
 import { getSave } from '../../core/store';
 import { getLesson } from '../../data/lessons';
@@ -22,7 +23,7 @@ export function stationScreen(root: HTMLElement, [id]: string[]): (() => void) |
   });
 
   root.append(
-    titleBar(`محطة ${l.id}: ${l.title}`, `الفصل ${l.chapter} · صفحة ${l.page} في الكتاب`, '/map', starsEl(lp?.stars ?? 0, 'text-3xl')),
+    titleBar(`محطة ${lessonLabel(l.id)}: ${l.title}`, `الفصل ${l.chapter} · الصفحات ${l.pages} في كتاب العلوم`, '/map', starsEl(lp?.stars ?? 0, 'text-3xl')),
     h(
       'div',
       { class: 'grid sm:grid-cols-2 gap-4' },

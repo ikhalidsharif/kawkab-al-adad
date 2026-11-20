@@ -1,4 +1,5 @@
 import { fmtTime, h, onKey } from '../../core/dom';
+import { lessonLabel } from '../../core/question';
 import { getSave, resetAll } from '../../core/store';
 import { levelInfo } from '../../core/xp';
 import { LESSONS } from '../../data/lessons';
@@ -50,7 +51,7 @@ export function parentScreen(root: HTMLElement): () => void {
             return h(
               'tr',
               { class: `border-t border-space-700 ${l.available ? '' : 'opacity-40'}` },
-              h('td', { class: 'p-2' }, h('b', { dir: 'ltr', class: 'ml-2 text-neon' }, l.id), l.title),
+              h('td', { class: 'p-2' }, h('b', { dir: 'ltr', class: 'ml-2 text-neon' }, lessonLabel(l.id)), l.title),
               h('td', { class: 'p-2' }, starsEl(lp?.stars ?? 0, 'text-base')),
               h('td', { class: 'p-2' }, lp?.attempts ? bar(mastery) : '—'),
               h('td', { class: 'p-2' }, String(lp?.attempts ?? 0)),

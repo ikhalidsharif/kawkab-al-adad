@@ -1,23 +1,21 @@
-import type { Question } from '../src/core/question';
+import type { AnswerInput, Question } from '../src/core/question';
 
-/** How a student would type the generator's own answer. */
-export function typedAnswer(q: Question): string | number {
+/** How a student would give the generator's own correct answer. */
+export function correctInput(q: Question): AnswerInput {
   const a = q.answer;
   switch (a.kind) {
     case 'choice':
+    case 'label':
       return a.index;
-    case 'bool':
-      return String(a.value);
-    case 'sci':
-      return `${a.mantissa.toString()}×10^${a.exp}`;
-    case 'plusminus':
-      return `±${a.value.toFraction()}`;
+    case 'order':
+      return [...a.correct];
+    case 'sort':
+      return [...a.assign];
+    case 'text':
+      return a.accepted[0];
     case 'number':
       return String(a.value);
-    case 'fraction': {
-      const v = a.value;
-      if (a.decimalOnly) return v.toString();
-      return `${Number(v.s) < 0 ? '-' : ''}${v.n}${Number(v.d) === 1 ? '' : '/' + v.d}`;
-    }
+    case 'fraction':
+      return a.value.toString();
   }
 }

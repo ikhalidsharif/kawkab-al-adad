@@ -1,4 +1,5 @@
 import { sfx } from '../../core/audio';
+import { lessonLabel } from '../../core/question';
 import { h } from '../../core/dom';
 import { confetti } from '../../core/fx';
 import { addTime, refreshStars, unlock } from '../../core/game';
@@ -20,7 +21,7 @@ export function practiceScreen(root: HTMLElement, [id]: string[]): (() => void) 
 
   const stop = runSession(root, {
     title: `تدريب: ${l.title}`,
-    sub: `محطة ${l.id} · 8 أسئلة متدرجة`,
+    sub: `محطة ${lessonLabel(l.id)} · 8 أسئلة متدرجة`,
     back: `/station/${l.id}`,
     count: PRACTICE_PLAN.length,
     mode: 'practice',

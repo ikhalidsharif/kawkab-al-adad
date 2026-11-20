@@ -1,4 +1,5 @@
 import { h } from '../../core/dom';
+import { lessonLabel } from '../../core/question';
 import { dueMistakes } from '../../core/mistakes';
 import { getSave } from '../../core/store';
 import { getBoss, LESSONS, REGIONS, type LessonDef } from '../../data/lessons';
@@ -24,7 +25,7 @@ function node(l: LessonDef): HTMLElement {
           ${ok && stars === 0 ? 'anim-pulse' : ''} ${stars === 3 ? '!border-gold !text-gold' : ''}`,
         dir: 'ltr',
       },
-      l.id === '3-ext' ? '+' : l.id,
+      lessonLabel(l.id),
     ),
     h('div', { class: 'text-sm font-bold leading-snug' }, l.title),
     ok ? starsEl(stars, 'text-base') : h('div', { class: 'text-xs text-slate-500' }, '🔒 قريباً'),

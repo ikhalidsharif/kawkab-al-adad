@@ -1,37 +1,48 @@
 import type Fraction from 'fraction.js';
 import type { Rng } from './rng';
 
-export type LessonId =
-  | '2-5' | '2-6' | '2-7' | '2-8' | '2-9'
-  | '3-0' | '3-1' | '3-2' | '3-3' | '3-4' | '3-5' | '3-ext' | '3-6';
+/** Stations (see CLAUDE.md). Shown to the student as e.g. "2-2أ". */
+export type LessonId = '2-2a' | '2-2b' | '2-2c' | '3-0' | '3-1a' | '3-1b' | '3-2a' | '3-2b';
 
 export type Difficulty = 1 | 2 | 3;
 
-/** Rich text: Arabic text with inline TeX between $...$ (rendered LTR with KaTeX). */
+/** Rich text: Arabic prose with optional inline TeX between $...$ (rendered LTR with KaTeX). */
 export type Rich = string;
 
 export type AnswerSpec =
-  /** Exact rational answer. decimalOnly: the student must write it as a decimal / whole number (no "a/b"). */
+  /** Exact number (data / calculation questions). */
   | { kind: 'fraction'; value: Fraction; requireSimplest?: boolean; decimalOnly?: boolean }
   | { kind: 'number'; value: number; tol?: number }
-  /** Two solutions ±value (value > 0, exact). */
-  | { kind: 'plusminus'; value: Fraction }
-  | { kind: 'sci'; mantissa: Fraction; exp: number }
   | { kind: 'choice'; index: number }
-  | { kind: 'bool'; value: boolean };
+  /** Put `items` in order: `correct` lists item indices in the right sequence. Input: number[] (indices in chosen order). */
+  | { kind: 'order'; items: Rich[]; correct: number[] }
+  /**
+   * Assign each item to a bucket. `assign[i]` is the bucket of item i. Input: number[] (bucket per item, -1 = none).
+   * With `oneEach` every bucket is used exactly once (matching pairs).
+   */
+  | { kind: 'sort'; items: Rich[]; buckets: Rich[]; assign: number[]; oneEach?: boolean }
+  /** Click a region of a diagram. Input: region index. */
+  | { kind: 'label'; diagram: string; regions: string[]; index: number }
+  /** Short typed scientific term; compared after Arabic normalisation. */
+  | { kind: 'text'; accepted: string[] };
+
+export type AnswerInput = string | number | number[] | null;
 
 export interface QuestionBody {
   prompt: Rich;
   answer: AnswerSpec;
   /** Present for multiple-choice questions (answer.kind === 'choice'). */
   choices?: Rich[];
+  /** Diagram shown with the question (always for 'label'). */
+  diagram?: string;
   hints: Rich[];
   solution: Rich[];
-  /** Placeholder shown in the answer box. */
   placeholder?: string;
-  /** Short display of the correct answer (TeX), shown after a miss. */
-  answerTex: string;
-  /** Raw operands so unit tests can verify the answer independently. */
+  /** The correct answer, displayed after a miss. */
+  answerText: Rich;
+  /** Book page the question is based on (53–97). */
+  page: number;
+  /** Raw data so unit tests can verify answers independently. */
   meta?: Record<string, unknown>;
 }
 
@@ -49,4 +60,9 @@ export interface Generator {
   label: string;
   difficulties: readonly Difficulty[];
   generate(rng: Rng, d: Difficulty): QuestionBody;
+}
+
+/** "2-2a" → "2-2أ" for display. */
+export function lessonLabel(id: LessonId): string {
+  return id.replace(/a$/, 'أ').replace(/b$/, 'ب').replace(/c$/, 'جـ');
 }

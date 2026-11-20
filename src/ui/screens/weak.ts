@@ -1,4 +1,5 @@
 import { sfx } from '../../core/audio';
+import { lessonLabel } from '../../core/question';
 import { h } from '../../core/dom';
 import { confetti } from '../../core/fx';
 import type { Difficulty, LessonId } from '../../core/question';
@@ -17,7 +18,7 @@ export function weakScreen(root: HTMLElement, [list]: string[]): (() => void) | 
   const mixes = ids.map((id) => getLesson(id)!.mix.filter((m) => getGenerator(m.gen).lesson === id));
   return runSession(root, {
     title: 'تدرّب على نقاط ضعفك 🎯',
-    sub: ids.map((id) => `${id} ${getLesson(id)!.title}`).join(' · '),
+    sub: ids.map((id) => `${lessonLabel(id)} ${getLesson(id)!.title}`).join(' · '),
     back: '/map',
     count: PLAN.length,
     mode: 'practice',
@@ -38,7 +39,7 @@ export function weakScreen(root: HTMLElement, [list]: string[]): (() => void) | 
             { class: 'flex flex-wrap gap-3 justify-center' },
             h('button', { class: 'btn btn-primary', 'data-primary': true, onclick: () => go(`/weak/${ids.join(',')}`) }, '↻ جولة أخرى ', h('span', { class: 'kbd' }, 'Enter')),
             h('button', { class: 'btn btn-gold', onclick: () => go('/exam') }, '🎓 امتحان تجريبي جديد'),
-            ...ids.map((id) => h('button', { class: 'btn', onclick: () => go(`/station/${id}/learn`) }, `📘 راجع شرح ${id}`)),
+            ...ids.map((id) => h('button', { class: 'btn', onclick: () => go(`/station/${id}/learn`) }, `📘 راجع شرح ${lessonLabel(id)}`)),
           ),
         ),
       );

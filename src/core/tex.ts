@@ -21,7 +21,20 @@ export function mathEl(tex: string, display = false): HTMLElement {
   return span;
 }
 
-/** Render Rich text: Arabic prose with $inline$ and $$display$$ TeX segments. */
+/** Plain text with **bold** segments. */
+function appendText(el: HTMLElement, text: string): void {
+  text.split(/\*\*(.+?)\*\*/g).forEach((part, i) => {
+    if (!part) return;
+    if (i % 2) {
+      const b = document.createElement('b');
+      b.className = 'text-neon';
+      b.textContent = part;
+      el.append(b);
+    } else el.append(document.createTextNode(part));
+  });
+}
+
+/** Render Rich text: Arabic prose with **bold**, $inline$ and $$display$$ TeX segments. */
 export function rich(text: string, cls = ''): HTMLElement {
   const el = document.createElement('span');
   if (cls) el.className = cls;
@@ -29,10 +42,10 @@ export function rich(text: string, cls = ''): HTMLElement {
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
-    if (m.index > last) el.append(document.createTextNode(text.slice(last, m.index)));
+    if (m.index > last) appendText(el, text.slice(last, m.index));
     el.append(m[1] !== undefined ? mathEl(m[1], true) : mathEl(m[2]));
     last = re.lastIndex;
   }
-  if (last < text.length) el.append(document.createTextNode(text.slice(last)));
+  if (last < text.length) appendText(el, text.slice(last));
   return el;
 }

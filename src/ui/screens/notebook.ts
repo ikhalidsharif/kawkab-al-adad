@@ -1,4 +1,5 @@
 import { sfx } from '../../core/audio';
+import { lessonLabel } from '../../core/question';
 import { h, onKey } from '../../core/dom';
 import { confetti } from '../../core/fx';
 import { unlock } from '../../core/game';
@@ -55,7 +56,7 @@ export function notebookScreen(root: HTMLElement): () => void {
                 h(
                   'tr',
                   { class: 'border-t border-space-700' },
-                  h('td', { class: 'p-2' }, `${m.lesson} ${getLesson(m.lesson)?.title ?? ''}`),
+                  h('td', { class: 'p-2' }, `${lessonLabel(m.lesson)} ${getLesson(m.lesson)?.title ?? ''}`),
                   h('td', { class: 'p-2' }, safeLabel(m.gen)),
                   h('td', { class: 'p-2' }, '●'.repeat(m.box + 1) + '○'.repeat(2 - m.box)),
                   h('td', { class: `p-2 ${m.due <= Date.now() ? 'text-bad font-bold' : 'text-slate-400'}` }, fmt(m.due)),

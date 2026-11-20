@@ -6,6 +6,7 @@ import { rich } from '../../core/tex';
 import { getLesson } from '../../data/lessons';
 import { go } from '../../router';
 import { progressDots, titleBar } from '../widgets/common';
+import { renderDiagram } from '../diagrams';
 
 const LEARN_MS = 2 * 60 * 1000;
 
@@ -29,7 +30,7 @@ export function learnScreen(root: HTMLElement, [id]: string[]): (() => void) | v
   const prevBtn = h('button', { class: 'btn', onclick: () => back() }, 'السابق');
 
   root.append(
-    titleBar(`تعلّم: ${l.title}`, `ص ${l.page} · ${content.goal}`, `/station/${l.id}`, timer),
+    titleBar(`تعلّم: ${l.title}`, `ص ${l.pages} · ${content.goal}`, `/station/${l.id}`, timer),
     content.vocab ? h('div', { class: 'flex flex-wrap gap-2 mb-4' }, h('span', { class: 'text-slate-400 text-sm' }, 'المفردات:'), content.vocab.map((v) => h('span', { class: 'chip text-violet' }, v))) : '',
     h('div', { class: 'flex justify-center mb-4' }, dots.el),
     body,
@@ -40,17 +41,16 @@ export function learnScreen(root: HTMLElement, [id]: string[]): (() => void) | v
     body.innerHTML = '';
     const s = content.slides[slide];
     content.slides.forEach((_, i) => dots.set(i, i < slide ? 'good' : i === slide ? 'current' : 'todo'));
-    const card = h(
+    const text = h(
       'div',
-      { class: 'panel anim-in p-6 md:p-8 flex flex-col gap-4' },
-      h('h2', { class: 'text-2xl font-black text-neon' }, s.title),
+      { class: 'flex flex-col gap-4 grow' },
+      h('div', { class: 'flex items-center gap-3' }, h('h2', { class: 'text-2xl font-black text-neon' }, s.title), h('span', { class: 'chip text-slate-400 mr-auto' }, `📖 ص ${s.pages}`)),
       h('div', { class: 'text-lg leading-loose' }, rich(s.body)),
     );
-    (s.steps ?? []).slice(0, step).forEach((st, i) =>
-      card.append(h('div', { class: `anim-in rounded-xl border p-3 text-lg leading-loose ${i === 0 ? 'border-violet/50 bg-violet/5 font-bold' : 'border-neon/30 bg-neon/5'}` }, i > 0 ? h('span', { class: 'chip ml-2' }, String(i)) : null, rich(st))),
-    );
+    (s.steps ?? []).slice(0, step).forEach((st) => text.append(h('div', { class: 'anim-in rounded-xl border border-neon/30 bg-neon/5 p-3 text-lg leading-loose' }, rich(st))));
     const allShown = step >= (s.steps?.length ?? 0);
-    if (allShown && s.tip) card.append(h('div', { class: 'anim-in rounded-xl border border-gold/40 bg-gold/5 p-3' }, '💡 ', rich(s.tip)));
+    if (allShown && s.tip) text.append(h('div', { class: 'anim-in rounded-xl border border-gold/40 bg-gold/5 p-3' }, '💡 ', rich(s.tip)));
+    const card = h('div', { class: `panel anim-in p-6 md:p-8 grid gap-6 ${s.diagram ? 'lg:grid-cols-[1fr_minmax(0,22rem)]' : ''}` }, text, s.diagram ? h('div', { class: 'self-start' }, renderDiagram(s.diagram).el) : null);
     body.append(card);
     prevBtn.disabled = slide === 0 && step === 0;
     const last = slide === content.slides.length - 1 && allShown;

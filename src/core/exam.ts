@@ -1,7 +1,7 @@
 import { LESSONS } from '../data/lessons';
-import { getGenerator, makeQuestion, questionFromMix } from '../generators';
+import { getGenerator, questionFromMix } from '../generators';
 import { checkAnswer, type CheckStatus } from './answer';
-import type { Difficulty, LessonId, Question } from './question';
+import type { AnswerInput, Difficulty, LessonId, Question } from './question';
 import { makeRng, newSeed, type Rng } from './rng';
 
 export const EXAM_SIZE = 25;
@@ -12,34 +12,39 @@ export function examLessons(): LessonId[] {
   return LESSONS.filter((l) => l.available && l.id !== '3-0').map((l) => l.id);
 }
 
+/** Difficulty mix of an exam paper: a few easy, mostly medium and hard. */
+const EXAM_DIFFICULTY: Difficulty[] = [1, 2, 2, 3, 2, 3, 1, 2, 3, 2];
+
 /**
- * 25 mixed questions: two per lesson (different question types when possible, mostly medium/hard),
- * plus fraction → decimal from the chapter 2 test, ordered by lesson like a real exam paper.
+ * 25 mixed questions spread evenly over the built stations, varied question types,
+ * never the same bank item twice, ordered by station like a real exam paper.
  */
 export function buildExam(rng: Rng = makeRng(newSeed())): Question[] {
-  const out: Question[] = [];
-  for (const id of examLessons()) {
-    const l = LESSONS.find((x) => x.id === id)!;
-    // only this lesson's own question types (some practice mixes borrow from a neighbouring lesson)
-    const mix = l.mix.filter((m) => getGenerator(m.gen).lesson === id);
-    const ds: Difficulty[][] = [[1, 3], [2, 2], [2, 3], [2, 3]];
-    const pair = rng.pick(ds);
-    const gens = new Set<string>();
-    for (const d of pair) {
-      // prefer a question type not used yet for this lesson
-      let q = questionFromMix(mix, d, rng);
-      for (let t = 0; t < 6 && gens.has(q.gen); t++) q = questionFromMix(mix, d, rng);
-      gens.add(q.gen);
-      out.push(q);
+  const lessons = examLessons();
+  const perLesson = new Map<LessonId, Question[]>(lessons.map((id) => [id, []]));
+  const usedItems = new Set<string>();
+  const usedGens = new Map<LessonId, Set<string>>(lessons.map((id) => [id, new Set()]));
+  for (let slot = 0; slot < EXAM_SIZE; slot++) {
+    const id = lessons[slot % lessons.length];
+    const mix = LESSONS.find((x) => x.id === id)!.mix;
+    const d = EXAM_DIFFICULTY[slot % EXAM_DIFFICULTY.length];
+    let q = questionFromMix(mix, d, rng);
+    for (let t = 0; t < 30; t++) {
+      const item = String(q.meta?.itemId ?? `${q.gen}#${q.prompt}`);
+      const freshType = !usedGens.get(id)!.has(q.gen) || usedGens.get(id)!.size >= mix.length;
+      if (!usedItems.has(item) && (freshType || t > 10)) break;
+      q = questionFromMix(mix, (t > 20 ? rng.pick([1, 2, 3]) : d) as Difficulty, rng);
     }
+    usedItems.add(String(q.meta?.itemId ?? `${q.gen}#${q.prompt}`));
+    usedGens.get(id)!.add(q.gen);
+    perLesson.get(id)!.push(q);
   }
-  while (out.length < EXAM_SIZE) out.splice(rng.int(0, 10), 0, makeQuestion('boss2/to-decimal', newSeed(), rng.pick([2, 3] as const)));
-  return out.slice(0, EXAM_SIZE);
+  return lessons.flatMap((id) => perLesson.get(id)!);
 }
 
 export interface GradedItem {
   q: Question;
-  input: string | number | null;
+  input: AnswerInput;
   status: CheckStatus | 'blank';
   points: number;
 }
@@ -54,7 +59,7 @@ export interface ExamReport {
 }
 
 /** Exam grading: correct = 1, right value but not in simplest form = ½, otherwise 0. */
-export function gradeExam(questions: Question[], answers: (string | number | null)[]): ExamReport {
+export function gradeExam(questions: Question[], answers: AnswerInput[]): ExamReport {
   const items: GradedItem[] = questions.map((q, i) => {
     const input = answers[i];
     if (input === null || input === undefined || input === '') return { q, input: null, status: 'blank', points: 0 };
@@ -79,7 +84,7 @@ export function gradeExam(questions: Question[], answers: (string | number | nul
   };
 }
 
-/** Label for report rows (lesson of the "fraction → decimal" item is 2-5 but it is a chapter-test skill). */
+/** Question-type label for report rows. */
 export function itemLabel(q: Question): string {
   return getGenerator(q.gen).label;
 }

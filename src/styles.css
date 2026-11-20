@@ -106,6 +106,30 @@ body {
   }
 }
 
+/* ---------- diagrams ---------- */
+.diagram .dg-body { fill: #1b2750; stroke: #2a3a6e; stroke-width: 2; }
+.diagram .dg-line { fill: none; stroke: #7c8bb8; stroke-width: 2; stroke-linecap: round; }
+.diagram .dg-organ { fill: #a78bfa33; stroke: #a78bfa; stroke-width: 2; }
+.diagram .dg-organ-line { fill: none; stroke: #a78bfa; stroke-width: 6; stroke-linecap: round; opacity: .6; }
+.diagram .dg-vessel { fill: none; stroke: #fb7185; stroke-width: 5; stroke-linecap: round; opacity: .8; }
+.diagram .dg-cut { stroke: #fb7185; stroke-width: 4; stroke-linecap: round; }
+.diagram .dg-cell { fill: #cbd5e133; stroke: #cbd5e1; stroke-width: 2; }
+.diagram .dg-wbc { fill: #e2e8f044; stroke: #e2e8f0; stroke-width: 2; }
+.diagram .dg-nucleus { fill: #818cf8aa; }
+.diagram .dg-antibody { fill: none; stroke: #fb7185; stroke-width: 3; stroke-linecap: round; }
+.diagram .dg-germ { fill: #fbbf24; }
+.diagram .dg-arrow { fill: none; stroke: #22d3ee; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.diagram .dg-region { fill: #22d3ee00; stroke: #22d3ee00; stroke-width: 2; transition: fill .15s, stroke .15s; }
+.diagram .dg-region:hover { fill: #22d3ee22; stroke: #22d3ee88; }
+.diagram .dg-badge circle { fill: #0a1024; stroke: #22d3ee; stroke-width: 2.5; }
+.diagram .dg-badge text { fill: #e6ecff; font-weight: 900; font-size: 14px; }
+.diagram .dg-badge.picked circle { fill: #22d3ee; }
+.diagram .dg-badge.picked text { fill: #050816; }
+.diagram .dg-badge.good circle { fill: #4ade80; stroke: #4ade80; }
+.diagram .dg-badge.bad circle { fill: #fb7185; stroke: #fb7185; }
+.diagram .dg-name rect { fill: #0a1024e6; stroke: #a78bfa; stroke-width: 1; }
+.diagram .dg-name text { fill: #e6ecff; font-size: 11px; font-weight: 700; }
+
 @keyframes pop {
   0% { transform: scale(0.8); opacity: 0; }
   60% { transform: scale(1.05); opacity: 1; }
