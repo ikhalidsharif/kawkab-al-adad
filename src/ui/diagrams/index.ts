@@ -4,6 +4,11 @@ import { immuneResponse } from './immuneResponse';
 import { diseaseSpread } from './diseaseSpread';
 import { koch } from './koch';
 import { insulin } from './insulin';
+import { digestive } from './digestive';
+import { respiratory } from './respiratory';
+import { alveolus } from './alveolus';
+import { urinary } from './urinary';
+import { nephron } from './nephron';
 
 /** A diagram region: its Arabic name, where its number badge sits, and (lazily) its clickable shape. */
 export interface Region {
@@ -28,6 +33,11 @@ export const DIAGRAMS: Record<string, DiagramDef> = {
   'disease-spread': diseaseSpread,
   koch,
   insulin,
+  digestive,
+  respiratory,
+  alveolus,
+  urinary,
+  nephron,
 };
 
 export interface RenderedDiagram {
@@ -37,6 +47,8 @@ export interface RenderedDiagram {
   onRegionClick(i: number, fn: () => void): void;
   /** Reveal the name of region i (after an answer). */
   showName(i: number): void;
+  /** Add or remove a CSS class on region i (e.g. "dg-hl" to highlight it). */
+  mark(i: number, cls: string, on: boolean): void;
 }
 
 /**
@@ -80,6 +92,9 @@ export function renderDiagram(id: string, opts: { numbered?: string[] } = {}): R
         el.style.cursor = 'pointer';
         el.addEventListener('click', fn);
       }
+    },
+    mark(i, cls, on) {
+      regions[i]?.el.classList.toggle(cls, on);
     },
     showName(i) {
       if (names[i]) {

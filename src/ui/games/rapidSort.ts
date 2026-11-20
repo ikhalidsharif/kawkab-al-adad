@@ -33,6 +33,8 @@ export interface RapidSortConfig {
   cards: SortCard[];
   scoreLabel: string;
   achievement?: { id: string; at: number };
+  /** Set for a station's secondary game (best score saved under this key). */
+  gameKey?: string;
 }
 
 export function cardBuckets(cfg: Pick<RapidSortConfig, 'buckets'>, c: SortCard): string[] {
@@ -148,7 +150,7 @@ export function rapidSortGame(cfg: RapidSortConfig): (root: HTMLElement) => () =
     function finish() {
       phase = 'done';
       cancelAnimationFrame(tick);
-      gameOver(host, { lesson: cfg.lesson, score, scoreLabel: cfg.scoreLabel, xp, replay: self, back });
+      gameOver(host, { lesson: cfg.lesson, score, scoreLabel: cfg.scoreLabel, xp, replay: self, back, gameKey: cfg.gameKey });
     }
 
     textEl.textContent = cfg.intro;

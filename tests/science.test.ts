@@ -11,10 +11,19 @@ import { attackOptions } from '../src/ui/games/fortress';
 import { bank2_2a } from '../src/data/science/s2_2a';
 import { bank2_2b, DATA_2_2B, KOCH_BUCKETS, KOCH_CARDS } from '../src/data/science/s2_2b';
 import { bank2_2c, QUICK_SORT_CARDS, SORT_BUCKETS } from '../src/data/science/s2_2c';
-import { cardBuckets } from '../src/ui/games/rapidSort';
+import { cardBuckets, type SortCard } from '../src/ui/games/rapidSort';
+import { bank3_0 } from '../src/data/science/s3_0';
+import { bank3_1a, FOOD_JOURNEY } from '../src/data/science/s3_1a';
+import { bank3_1b, KITCHEN_CARDS, LABEL, WATER_LOSS } from '../src/data/science/s3_1b';
+import { AIR_JOURNEY, BALL_AREA, bank3_2a, BREATH_CARDS } from '../src/data/science/s3_2a';
+import { bank3_2b, FILTER_CARDS, URINE_JOURNEY, WATER_GAIN, WATER_OUT } from '../src/data/science/s3_2b';
+import { journeyQuestions, type JourneyConfig } from '../src/ui/games/journey';
 import { correctInput } from './helpers';
 
-const BANKS: [string, BankItem[]][] = [['2-2a', bank2_2a], ['2-2b', bank2_2b], ['2-2c', bank2_2c]];
+const BANKS: [string, BankItem[]][] = [
+  ['2-2a', bank2_2a], ['2-2b', bank2_2b], ['2-2c', bank2_2c],
+  ['3-0', bank3_0], ['3-1a', bank3_1a], ['3-1b', bank3_1b], ['3-2a', bank3_2a], ['3-2b', bank3_2b],
+];
 const uniq = <T>(a: T[]) => new Set(a).size === a.length;
 
 describe('question banks', () => {
@@ -199,4 +208,104 @@ describe('chapter 2 quick-classify games', () => {
       for (let b = 0; b < buckets.length; b++) expect(cards.some((c) => !c.buckets && c.bucket === b), `${name} bucket ${b}`).toBe(true);
     });
   }
+});
+
+describe('chapter 3 data questions match an independent calculation', () => {
+  const each = (gen: string, check: (v: number, m: Record<string, never>, prompt: string) => void) => {
+    for (const d of [1, 2, 3] as const)
+      for (let s = 1; s <= 300; s++) {
+        const q = makeQuestion(gen, s, d);
+        check(Number(correctInput(q)), q.meta as Record<string, never>, q.prompt);
+      }
+  };
+  it('3-0 breathing rate (p. 73)', () => {
+    each('3-0/rate', (v, m) => {
+      const t = m.t as unknown as number[];
+      const exp = m.kind === 'x4' ? (m.n as number) * 4 : m.kind === 'avg' ? (t.reduce((a, b) => a + b, 0) * 4) / 3 : ((m.after as number) - (m.rest as number)) * 4;
+      expect(v).toBe(exp);
+      expect(Number.isInteger(v)).toBe(true);
+    });
+  });
+  it('3-1ب nutrition label and water loss (pp. 81–84)', () => {
+    const per100 = (n: string) => LABEL.find(([x]) => x === n)![1];
+    const loss = WATER_LOSS.reduce((a, [, x]) => a + x, 0);
+    expect(loss).toBe(2500);
+    each('3-1b/foodlabel', (v, m) => {
+      const exp =
+        m.kind === 'fat2' ? (m.fat as number) * 2
+        : m.kind === 'read' ? per100(m.name)
+        : m.kind === 'portion' ? (per100(m.name) * (m.grams as number)) / 100
+        : m.kind === 'water-total' ? loss
+        : m.kind === 'water-pct' ? (WATER_LOSS.find(([x]) => x === m.name)![1] / loss) * 100
+        : loss - 500 + (m.sweat as number);
+      expect(Math.abs(v - exp)).toBeLessThan(1e-9);
+    });
+  });
+  it('3-2أ air volume, surface area, smoking risk (pp. 89–90)', () => {
+    each('3-2a/data', (v, m) => {
+      const exp = m.kind === 'air' ? (m.rate as number) * 500 : m.kind === 'balls' ? (m.n as number) * BALL_AREA : (m.x as number) * (m.base as number);
+      expect(Math.abs(v - exp)).toBeLessThan(0.006);
+    });
+  });
+  it('3-2ب water balance and kidney blood flow (pp. 92–95)', () => {
+    const gain = WATER_GAIN.reduce((a, [, x]) => a + x, 0);
+    const out = WATER_OUT.reduce((a, [, x]) => a + x, 0);
+    expect(gain).toBe(2500);
+    expect(out).toBe(2500);
+    each('3-2b/data', (v, m) => {
+      const list = m.gain ? WATER_GAIN : WATER_OUT;
+      const exp =
+        m.kind === 'blood' ? ((m.hours as number) * 60) / 5
+        : m.kind === 'gain-total' ? gain
+        : m.kind === 'pct' ? (list.find(([x]) => x === m.name)![1] / 2500) * 100
+        : 1500 + (m.sweat as number) - 500;
+      expect(Math.abs(v - exp)).toBeLessThan(1e-9);
+    });
+  });
+});
+
+describe('chapter 3 journeys', () => {
+  const trips: [string, Omit<JourneyConfig, 'lesson' | 'route' | 'title' | 'sub' | 'intro'>][] = [['رحلة اللقمة', FOOD_JOURNEY], ['مسار الهواء', AIR_JOURNEY], ['مسار البول', URINE_JOURNEY]];
+  for (const [name, j] of trips) {
+    it(`${name}: stops exist on the diagram and every question has one correct, unique option`, () => {
+      const def = DIAGRAMS[j.diagram];
+      for (const s of j.stops) expect(def.regions[s.region], s.region).toBeDefined();
+      expect(uniq(j.stops.map((s) => s.does))).toBe(true);
+      for (const dc of j.decoys) expect(j.stops.some((s) => s.name === dc.name)).toBe(false);
+      for (let seed = 1; seed <= 60; seed++) {
+        const qs = journeyQuestions({ ...j, lesson: '3-1a', route: 'x', title: '', sub: '', intro: '' }, makeRng(seed));
+        expect(qs).toHaveLength(j.stops.length * 2 - 1);
+        for (const q of qs) {
+          expect(q.options).toHaveLength(4);
+          expect(uniq(q.options)).toBe(true);
+          const right = q.kind === 'next' ? j.stops[q.stop].name : j.stops[q.stop].does;
+          expect(q.options[q.correct]).toBe(right);
+        }
+      }
+    });
+  }
+});
+
+describe('chapter 3 classify games', () => {
+  const decks: [string, string[], SortCard[]][] = [
+    ['مطبخ التوازن', ['البروتينات', 'الكربوهيدرات', 'الدهون', 'الماء'], KITCHEN_CARDS],
+    ['محاكي التنفس', ['شهيق', 'زفير'], BREATH_CARDS],
+    ['محطة التنقية', ['يبقى', 'يعود', 'يُطرح'], FILTER_CARDS],
+  ];
+  for (const [name, buckets, cards] of decks) {
+    it(`${name}: unique cards with unique buttons and a real answer`, () => {
+      expect(uniq(cards.map((c) => c.text))).toBe(true);
+      for (const c of cards) {
+        const bs = cardBuckets({ buckets }, c);
+        expect(bs.length >= 2 && bs.length <= 4, c.text).toBe(true);
+        expect(uniq(bs), c.text).toBe(true);
+        expect(c.bucket >= 0 && c.bucket < bs.length, c.text).toBe(true);
+        expect(c.page >= 72 && c.page <= 97, c.text).toBe(true);
+      }
+    });
+  }
+  it('مطبخ التوازن: the right answer is spread across the four buttons', () => {
+    const slots = new Set(KITCHEN_CARDS.map((c) => c.bucket));
+    expect(slots.size).toBe(4);
+  });
 });
